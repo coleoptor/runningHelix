@@ -54,7 +54,7 @@
             </div>
         </header>
 
-        <!-- Contenu Principal : Tableur -->
+        <!-- Contenu Principal : Tableur avec actions -->
         <main class="max-w-4xl mx-auto px-4 py-8">
             <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
@@ -65,11 +65,12 @@
                                 <th class="py-3 px-4">Distance</th>
                                 <th class="py-3 px-4">Temps Objectif</th>
                                 <th class="py-3 px-4">Allure Moyenne</th>
+                                <th class="py-3 px-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="runners-table-body" class="divide-y divide-gray-100 text-sm">
                             <tr>
-                                <td colspan="4" class="py-6 text-center text-gray-400">Chargement des données...</td>
+                                <td colspan="5" class="py-6 text-center text-gray-400">Chargement des données...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -78,12 +79,14 @@
         </main>
     </div>
 
-    <!-- Formulaire d'ajout en bas de page -->
-    <section class="bg-gray-50 border-t border-gray-200 py-8 mt-12">
+    <!-- Formulaire d'ajout / modification en bas de page -->
+    <section class="bg-gray-50 border-t border-gray-200 py-8 mt-12" id="form-section">
         <div class="max-w-2xl mx-auto px-4">
-            <h2 class="text-lg font-bold text-gray-900 mb-4 text-center">Ajouter votre objectif</h2>
-            <form id="runner-form" onsubmit="handleAddRunner(event)" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+            <h2 id="form-title" class="text-lg font-bold text-gray-900 mb-4 text-center">Ajouter votre objectif</h2>
+            <form id="runner-form" onsubmit="handleSaveRunner(event)" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
                 
+                <input type="hidden" id="runner-id" value="">
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Prénom ou Pseudonyme</label>
@@ -113,9 +116,14 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
                 </div>
 
-                <button type="submit" class="w-full bg-gray-900 hover:bg-black text-white font-medium py-2.5 rounded-lg transition text-sm shadow-sm">
-                    Enregistrer mon objectif
-                </button>
+                <div class="flex gap-2">
+                    <button type="submit" id="submit-btn" class="flex-1 bg-gray-900 hover:bg-black text-white font-medium py-2.5 rounded-lg transition text-sm shadow-sm">
+                        Enregistrer mon objectif
+                    </button>
+                    <button type="button" id="cancel-btn" onclick="resetForm()" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-4 py-2.5 rounded-lg transition text-sm">
+                        Annuler
+                    </button>
+                </div>
             </form>
         </div>
     </section>
@@ -135,7 +143,6 @@
         let currentFilter = 'Tous';
         let runnersData = [];
 
-        // 4 choix de temps par distance (basés sur ~5min/km, ~6min/km, ~7min/km + custom)
         const timePresets = {
             '5 km': [
                 { label: '25:00 (5:00 /km)', value: '25:00' },
@@ -179,7 +186,7 @@
 
             if (error) {
                 console.error('Erreur lors du chargement :', error);
-                document.getElementById('runners-table-body').innerHTML = `<tr><td colspan="4" class="py-6 text-center text-red-500">Erreur de connexion à la base de données.</td></tr>`;
+                document.getElementById('runners-table-body').innerHTML = `<tr><td colspan="5" class="py-6 text-center text-red-500">Erreur de connexion à la base de données.</td></tr>`;
                 return;
             }
 
@@ -224,8 +231,9 @@
             return 0;
         }
 
-        async function handleAddRunner(e) {
+        async function handleSaveRunner(e) {
             e.preventDefault();
+            const id = document.getElementById('runner-id').value;
             const name = document.getElementById('runner-name').value.trim();
             const distance = document.getElementById('runner-distance').value;
             const timeChoice = document.getElementById('runner-time-choice').value;
@@ -239,11 +247,9 @@
                     return;
                 }
             } else {
-                // On extrait uniquement le temps (ex: "25:00" à partir de "25:00 (5:00 /km)")
                 finalTime = timeChoice.split(' ')[0];
             }
 
-            // Calcul automatique de l'allure moyenne
             const distKm = parseDistanceKm(distance);
             const totalSeconds = parseTimeToSeconds(finalTime);
             const paceSec = Math.round(totalSeconds / distKm);
@@ -251,23 +257,80 @@
             const pSecs = paceSec % 60;
             const paceDisplay = `${pMins}:${pSecs < 10 ? '0' : ''}${pSecs} /km`;
 
-            const { error } = await supabaseClient.from('runners').insert([
-                {
-                    name: name,
-                    distance: distance,
-                    time: finalTime,
-                    pace_type: paceDisplay
-                }
-            ]);
+            const payload = {
+                name: name,
+                distance: distance,
+                time: finalTime,
+                pace_type: paceDisplay
+            };
+
+            let error;
+            if (id) {
+                // Modification
+                ({ error } = await supabaseClient.from('runners').update(payload).eq('id', id));
+            } else {
+                // Création
+                ({ error } = await supabaseClient.from('runners').insert([payload]));
+            }
 
             if (error) {
                 alert('Erreur lors de l’enregistrement : ' + error.message);
                 return;
             }
 
-            document.getElementById('runner-form').reset();
-            updateTimeChoices();
+            resetForm();
             fetchRunners();
+        }
+
+        function editRunner(id) {
+            const runner = runnersData.find(r => r.id === id);
+            if (!runner) return;
+
+            document.getElementById('runner-id').value = runner.id;
+            document.getElementById('runner-name').value = runner.name;
+            document.getElementById('runner-distance').value = runner.distance;
+            
+            updateTimeChoices();
+
+            const select = document.getElementById('runner-time-choice');
+            const hasOption = Array.from(select.options).some(opt => opt.value === runner.time);
+
+            if (hasOption) {
+                select.value = runner.time;
+            } else {
+                select.value = 'custom';
+                document.getElementById('runner-custom-time').value = runner.time;
+            }
+
+            toggleCustomTime();
+
+            document.getElementById('form-title').innerText = "Modifier l'objectif";
+            document.getElementById('submit-btn').innerText = "Mettre à jour";
+            document.getElementById('cancel-btn').classList.remove('hidden');
+
+            document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteRunner(id) {
+            if (!confirm("Êtes-vous sûr de vouloir supprimer cet objectif ?")) return;
+
+            const { error } = await supabaseClient.from('runners').delete().eq('id', id);
+
+            if (error) {
+                alert('Erreur lors de la suppression : ' + error.message);
+                return;
+            }
+
+            fetchRunners();
+        }
+
+        function resetForm() {
+            document.getElementById('runner-form').reset();
+            document.getElementById('runner-id').value = '';
+            document.getElementById('form-title').innerText = "Ajouter votre objectif";
+            document.getElementById('submit-btn').innerText = "Enregistrer mon objectif";
+            document.getElementById('cancel-btn').classList.add('hidden');
+            updateTimeChoices();
         }
 
         function renderTable() {
@@ -277,7 +340,7 @@
                 : runnersData.filter(r => r.distance === currentFilter);
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-gray-400">Aucun participant enregistré pour le moment.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-400">Aucun participant enregistré pour le moment.</td></tr>`;
                 return;
             }
 
@@ -287,6 +350,14 @@
                     <td class="py-3 px-4"><span class="px-2 py-1 bg-amber-50 text-amber-800 rounded text-xs font-medium">${r.distance}</span></td>
                     <td class="py-3 px-4 font-bold text-gray-900">${r.time}</td>
                     <td class="py-3 px-4 text-gray-600">${r.pace_type || '-'}</td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="editRunner('${r.id}')" title="Modifier" class="p-1 text-gray-500 hover:text-amber-600 transition mr-2">
+                            ✏️
+                        </button>
+                        <button onclick="deleteRunner('${r.id}')" title="Supprimer" class="p-1 text-gray-500 hover:text-red-600 transition">
+                            🗑️
+                        </button>
+                    </td>
                 </tr>
             `).join('');
         }
