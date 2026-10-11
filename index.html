@@ -156,23 +156,27 @@
         let currentRace = 'Run4them 2026';
         let runnersData = [];
 
+        // Ajout de l'option "Finisher" dans les presets
         const timePresets = {
             '5 km': [
                 { label: '25:00 (5:00 /km)', value: '25:00' },
                 { label: '30:00 (6:00 /km)', value: '30:00' },
                 { label: '35:00 (7:00 /km)', value: '35:00' },
+                { label: 'Finisher (juste finir)', value: 'Finisher' },
                 { label: 'Saisir un temps exact...', value: 'custom' }
             ],
             '10 km': [
                 { label: '50:00 (5:00 /km)', value: '50:00' },
                 { label: '1:00:00 (6:00 /km)', value: '1:00:00' },
                 { label: '1:10:00 (7:00 /km)', value: '1:10:00' },
+                { label: 'Finisher (juste finir)', value: 'Finisher' },
                 { label: 'Saisir un temps exact...', value: 'custom' }
             ],
             '20 km': [
                 { label: '1:40:00 (5:00 /km)', value: '1:40:00' },
                 { label: '2:00:00 (6:00 /km)', value: '2:00:00' },
                 { label: '2:20:00 (7:00 /km)', value: '2:20:00' },
+                { label: 'Finisher (juste finir)', value: 'Finisher' },
                 { label: 'Saisir un temps exact...', value: 'custom' }
             ]
         };
@@ -267,6 +271,7 @@
             const timeChoice = document.getElementById('runner-time-choice').value;
             
             let finalTime = '';
+            let paceDisplay = '-';
 
             if (timeChoice === 'custom') {
                 finalTime = document.getElementById('runner-custom-time').value.trim();
@@ -278,12 +283,17 @@
                 finalTime = timeChoice.split(' ')[0];
             }
 
-            const distKm = parseDistanceKm(distance);
-            const totalSeconds = parseTimeToSeconds(finalTime);
-            const paceSec = Math.round(totalSeconds / distKm);
-            const pMins = Math.floor(paceSec / 60);
-            const pSecs = paceSec % 60;
-            const paceDisplay = `${pMins}:${pSecs < 10 ? '0' : ''}${pSecs} /km`;
+            // Si c'est "Finisher", pas de calcul d'allure
+            if (finalTime !== 'Finisher') {
+                const distKm = parseDistanceKm(distance);
+                const totalSeconds = parseTimeToSeconds(finalTime);
+                if (totalSeconds > 0) {
+                    const paceSec = Math.round(totalSeconds / distKm);
+                    const pMins = Math.floor(paceSec / 60);
+                    const pSecs = paceSec % 60;
+                    paceDisplay = `${pMins}:${pSecs < 10 ? '0' : ''}${pSecs} /km`;
+                }
+            }
 
             const payload = {
                 name: name,
@@ -365,7 +375,6 @@
         function renderCards() {
             const container = document.getElementById('runners-container');
             
-            // Filtre par course active et par distance sélectionnée
             const filtered = runnersData.filter(r => {
                 const matchRace = (r.race || 'Run4them 2026') === currentRace;
                 const matchDist = currentFilter === 'Tous' || r.distance === currentFilter;
