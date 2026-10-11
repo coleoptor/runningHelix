@@ -28,108 +28,109 @@
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-white text-gray-800 min-h-screen flex flex-col justify-between">
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col justify-between">
 
     <div>
-        <!-- En-tête avec le logo Helix Training -->
-        <header class="border-b border-gray-100 bg-white sticky top-0 z-10">
-            <div class="max-w-4xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-full overflow-hidden border border-amber-600 shadow-md flex-shrink-0 bg-amber-600 flex items-center justify-center">
-                        <img src="1000091068.jpg" alt="Helix Training Logo" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23d97706\'><circle cx=\'12\' cy=\'12\' r=\'12\'/></svg>';">
+        <!-- En-tête avec logo -->
+        <header class="border-b border-gray-200 bg-white sticky top-0 z-20 shadow-sm">
+            <div class="max-w-3xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full overflow-hidden border border-amber-600 shadow-sm flex-shrink-0 bg-amber-600 flex items-center justify-center font-bold text-white text-xs">
+                            <img src="1000091068.jpg" alt="Helix" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div style="display:none;" class="w-full h-full items-center justify-center bg-amber-600 text-[10px] tracking-tighter">HELIX</div>
+                        </div>
+                        <div>
+                            <h1 class="text-base font-bold tracking-tight text-gray-900 leading-tight">HELIX TRAINING</h1>
+                            <p class="text-[10px] text-amber-600 font-semibold tracking-wider uppercase">Running WOD</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 class="text-xl font-bold tracking-tight text-gray-900">HELIX TRAINING</h1>
-                        <p class="text-xs text-amber-600 font-semibold tracking-wider uppercase">Running WOD • Objectifs Groupe</p>
-                    </div>
+
+                    <!-- Bouton Ajouter mobile en haut -->
+                    <button onclick="openModal()" class="sm:hidden bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition flex items-center gap-1">
+                        + Objectif
+                    </button>
                 </div>
 
                 <!-- Filtres par distance -->
-                <div class="flex items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-200">
-                    <button onclick="setFilter('Tous')" id="filter-Tous" class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-900 text-white transition">Tous</button>
-                    <button onclick="setFilter('5 km')" id="filter-5 km" class="px-3 py-1.5 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition">5 km</button>
-                    <button onclick="setFilter('10 km')" id="filter-10 km" class="px-3 py-1.5 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition">10 km</button>
-                    <button onclick="setFilter('20 km')" id="filter-20 km" class="px-3 py-1.5 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition">20 km</button>
+                <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200 w-full sm:w-auto justify-center">
+                    <button onclick="setFilter('Tous')" id="filter-Tous" class="flex-1 sm:flex-initial px-3 py-1 text-xs font-medium rounded-md bg-gray-900 text-white transition">Tous</button>
+                    <button onclick="setFilter('5 km')" id="filter-5 km" class="flex-1 sm:flex-initial px-3 py-1 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition">5 km</button>
+                    <button onclick="setFilter('10 km')" id="filter-10 km" class="flex-1 sm:flex-initial px-3 py-1 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition">10 km</button>
+                    <button onclick="setFilter('20 km')" id="filter-20 km" class="flex-1 sm:flex-initial px-3 py-1 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition">20 km</button>
                 </div>
+
+                <!-- Bouton Ajouter Desktop -->
+                <button onclick="openModal()" class="hidden sm:flex bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition items-center gap-1.5">
+                    + Ajouter mon objectif
+                </button>
             </div>
         </header>
 
-        <!-- Contenu Principal : Tableur avec actions -->
-        <main class="max-w-4xl mx-auto px-4 py-8">
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                <th class="py-3 px-4">Participant</th>
-                                <th class="py-3 px-4">Distance</th>
-                                <th class="py-3 px-4">Temps Objectif</th>
-                                <th class="py-3 px-4">Allure Moyenne</th>
-                                <th class="py-3 px-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="runners-table-body" class="divide-y divide-gray-100 text-sm">
-                            <tr>
-                                <td colspan="5" class="py-6 text-center text-gray-400">Chargement des données...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <!-- Contenu Principal : Liste de cartes mobile-friendly -->
+        <main class="max-w-3xl mx-auto px-4 py-6">
+            <div id="runners-container" class="space-y-3">
+                <!-- Les cartes s'afficheront ici dynamiquement -->
+                <div class="bg-white p-6 rounded-xl border border-gray-200 text-center text-gray-400 text-sm shadow-sm">
+                    Chargement des données...
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Formulaire d'ajout / modification en bas de page -->
-    <section class="bg-gray-50 border-t border-gray-200 py-8 mt-12" id="form-section">
-        <div class="max-w-2xl mx-auto px-4">
-            <h2 id="form-title" class="text-lg font-bold text-gray-900 mb-4 text-center">Ajouter votre objectif</h2>
-            <form id="runner-form" onsubmit="handleSaveRunner(event)" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                
+    <!-- Fenêtre Modale (Popup) pour le Formulaire -->
+    <div id="runner-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative border border-gray-100 my-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 id="form-title" class="text-base font-bold text-gray-900">Ajouter votre objectif</h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold px-2 py-1">&times;</button>
+            </div>
+
+            <form id="runner-form" onsubmit="handleSaveRunner(event)" class="space-y-4">
                 <input type="hidden" id="runner-id" value="">
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Prénom ou Pseudonyme</label>
-                        <input type="text" id="runner-name" required placeholder="Ex: Thomas" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Distance</label>
-                        <select id="runner-distance" onchange="updateTimeChoices()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm bg-white">
-                            <option value="5 km">5 km</option>
-                            <option value="10 km" selected>10 km</option>
-                            <option value="20 km">20 km</option>
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Prénom ou Pseudonyme</label>
+                    <input type="text" id="runner-name" required placeholder="Ex: Thomas" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Distance</label>
+                    <select id="runner-distance" onchange="updateTimeChoices()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm bg-white">
+                        <option value="5 km">5 km</option>
+                        <option value="10 km" selected>10 km</option>
+                        <option value="20 km">20 km</option>
+                    </select>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Choix de l'objectif de temps</label>
                     <select id="runner-time-choice" onchange="toggleCustomTime()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm bg-white mb-2">
-                        <!-- Options injectées dynamiquement -->
+                        <!-- Options dynamiques -->
                     </select>
                 </div>
 
                 <div id="custom-time-container" class="hidden">
-                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Saisir votre temps exact (HH:MM:SS ou MM:SS)</label>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Temps exact (HH:MM:SS ou MM:SS)</label>
                     <input type="text" id="runner-custom-time" placeholder="Ex: 48:30" 
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
                 </div>
 
-                <div class="flex gap-2">
-                    <button type="submit" id="submit-btn" class="flex-1 bg-gray-900 hover:bg-black text-white font-medium py-2.5 rounded-lg transition text-sm shadow-sm">
-                        Enregistrer mon objectif
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" id="submit-btn" class="flex-1 bg-gray-900 hover:bg-black text-white font-medium py-2.5 rounded-lg transition text-xs shadow-sm">
+                        Enregistrer
                     </button>
-                    <button type="button" id="cancel-btn" onclick="resetForm()" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-4 py-2.5 rounded-lg transition text-sm">
+                    <button type="button" onclick="closeModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-4 py-2.5 rounded-lg transition text-xs">
                         Annuler
                     </button>
                 </div>
             </form>
         </div>
-    </section>
+    </div>
 
     <!-- Footer -->
-    <footer class="py-4 text-center text-xs text-gray-400 border-t border-gray-100">
+    <footer class="py-4 text-center text-[11px] text-gray-400 border-t border-gray-200 bg-white">
         Helix Training Running WOD • Synchronisé via Supabase
     </footer>
 
@@ -186,12 +187,12 @@
 
             if (error) {
                 console.error('Erreur lors du chargement :', error);
-                document.getElementById('runners-table-body').innerHTML = `<tr><td colspan="5" class="py-6 text-center text-red-500">Erreur de connexion à la base de données.</td></tr>`;
+                document.getElementById('runners-container').innerHTML = `<div class="bg-white p-6 rounded-xl border border-red-200 text-center text-red-500 text-sm">Erreur de connexion à la base de données.</div>`;
                 return;
             }
 
             runnersData = data || [];
-            renderTable();
+            renderCards();
         }
 
         function setFilter(distance) {
@@ -199,12 +200,12 @@
             ['Tous', '5 km', '10 km', '20 km'].forEach(d => {
                 const btn = document.getElementById(`filter-${d}`);
                 if (d === distance) {
-                    btn.className = "px-3 py-1.5 text-xs font-medium rounded-md bg-gray-900 text-white transition";
+                    btn.className = "flex-1 sm:flex-initial px-3 py-1 text-xs font-medium rounded-md bg-gray-900 text-white transition";
                 } else {
-                    btn.className = "px-3 py-1.5 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition";
+                    btn.className = "flex-1 sm:flex-initial px-3 py-1 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition";
                 }
             });
-            renderTable();
+            renderCards();
         }
 
         function toggleCustomTime() {
@@ -229,6 +230,16 @@
                 return parts[0] * 60 + parts[1];
             }
             return 0;
+        }
+
+        function openModal() {
+            resetForm();
+            document.getElementById('runner-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('runner-modal').classList.add('hidden');
+            resetForm();
         }
 
         async function handleSaveRunner(e) {
@@ -266,10 +277,9 @@
 
             let error;
             if (id) {
-                // Modification
-                ({ error } = await supabaseClient.from('runners').update(payload).eq('id', id));
+                const queryId = !isNaN(id) ? Number(id) : id;
+                ({ error } = await supabaseClient.from('runners').update(payload).eq('id', queryId));
             } else {
-                // Création
                 ({ error } = await supabaseClient.from('runners').insert([payload]));
             }
 
@@ -278,48 +288,45 @@
                 return;
             }
 
-            resetForm();
+            closeModal();
             fetchRunners();
         }
 
         function editRunner(id) {
-    // On convertit les deux en String pour être sûr que la comparaison fonctionne
-    const runner = runnersData.find(r => String(r.id) === String(id));
-    if (!runner) {
-        console.error("Participant introuvable pour l'ID :", id);
-        return;
-    }
+            const runner = runnersData.find(r => String(r.id) === String(id));
+            if (!runner) {
+                alert("Impossible de trouver les données de cette ligne.");
+                return;
+            }
 
-    document.getElementById('runner-id').value = runner.id;
-    document.getElementById('runner-name').value = runner.name;
-    document.getElementById('runner-distance').value = runner.distance;
-    
-    updateTimeChoices();
+            document.getElementById('runner-id').value = runner.id;
+            document.getElementById('runner-name').value = runner.name;
+            document.getElementById('runner-distance').value = runner.distance;
+            
+            updateTimeChoices();
 
-    const select = document.getElementById('runner-time-choice');
-    const hasOption = Array.from(select.options).some(opt => opt.value === runner.time);
+            const select = document.getElementById('runner-time-choice');
+            const hasOption = Array.from(select.options).some(opt => opt.value === runner.time);
 
-    if (hasOption) {
-        select.value = runner.time;
-    } else {
-        select.value = 'custom';
-        document.getElementById('runner-custom-time').value = runner.time;
-    }
+            if (hasOption) {
+                select.value = runner.time;
+            } else {
+                select.value = 'custom';
+                document.getElementById('runner-custom-time').value = runner.time;
+            }
 
-    toggleCustomTime();
+            toggleCustomTime();
 
-    document.getElementById('form-title').innerText = "Modifier l'objectif";
-    document.getElementById('submit-btn').innerText = "Mettre à jour";
-    document.getElementById('cancel-btn').classList.remove('hidden');
-
-    document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
-}
-
+            document.getElementById('form-title').innerText = "Modifier l'objectif";
+            document.getElementById('submit-btn').innerText = "Mettre à jour";
+            document.getElementById('runner-modal').classList.remove('hidden');
+        }
 
         async function deleteRunner(id) {
             if (!confirm("Êtes-vous sûr de vouloir supprimer cet objectif ?")) return;
 
-            const { error } = await supabaseClient.from('runners').delete().eq('id', id);
+            const queryId = !isNaN(id) ? Number(id) : id;
+            const { error } = await supabaseClient.from('runners').delete().eq('id', queryId);
 
             if (error) {
                 alert('Erreur lors de la suppression : ' + error.message);
@@ -333,42 +340,52 @@
             document.getElementById('runner-form').reset();
             document.getElementById('runner-id').value = '';
             document.getElementById('form-title').innerText = "Ajouter votre objectif";
-            document.getElementById('submit-btn').innerText = "Enregistrer mon objectif";
-            document.getElementById('cancel-btn').classList.add('hidden');
+            document.getElementById('submit-btn').innerText = "Enregistrer";
             updateTimeChoices();
         }
 
-        function renderTable() {
-            const tbody = document.getElementById('runners-table-body');
+        function renderCards() {
+            const container = document.getElementById('runners-container');
             const filtered = currentFilter === 'Tous' 
                 ? runnersData 
                 : runnersData.filter(r => r.distance === currentFilter);
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-400">Aucun participant enregistré pour le moment.</td></tr>`;
+                container.innerHTML = `<div class="bg-white p-6 rounded-xl border border-gray-200 text-center text-gray-400 text-sm shadow-sm">Aucun participant enregistré pour le moment.</div>`;
                 return;
             }
 
-            tbody.innerHTML = filtered.map(r => `
-                <tr class="hover:bg-gray-50/50 transition">
-                    <td class="py-3 px-4 font-semibold text-gray-900">${escapeHtml(r.name)}</td>
-                    <td class="py-3 px-4"><span class="px-2 py-1 bg-amber-50 text-amber-800 rounded text-xs font-medium">${r.distance}</span></td>
-                    <td class="py-3 px-4 font-bold text-gray-900">${r.time}</td>
-                    <td class="py-3 px-4 text-gray-600">${r.pace_type || '-'}</td>
-                    <td class="py-3 px-4 text-right">
-                        <button onclick="editRunner('${r.id}')" title="Modifier" class="p-1 text-gray-500 hover:text-amber-600 transition mr-2">
-                            ✏️
-                        </button>
-                        <button onclick="deleteRunner('${r.id}')" title="Supprimer" class="p-1 text-gray-500 hover:text-red-600 transition">
-                            🗑️
-                        </button>
-                    </td>
-                </tr>
+            container.innerHTML = filtered.map(r => `
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between gap-3 transition hover:border-amber-300">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-gray-900 text-base">${escapeHtml(r.name)}</span>
+                            <span class="px-2 py-0.5 bg-amber-50 text-amber-800 rounded text-[11px] font-semibold">${r.distance}</span>
+                        </div>
+                        <div class="text-xs text-gray-500 flex items-center gap-3">
+                            <span>Allure : <strong class="text-gray-700">${r.pace_type || '-'}</strong></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right">
+                            <div class="text-xs text-gray-400 uppercase font-medium">Temps</div>
+                            <div class="text-lg font-extrabold text-gray-900">${r.time}</div>
+                        </div>
+                        <div class="flex flex-col gap-1 border-l border-gray-100 pl-3">
+                            <button onclick="editRunner('${r.id}')" title="Modifier" class="p-1 text-gray-400 hover:text-amber-600 transition">
+                                ✏️
+                            </button>
+                            <button onclick="deleteRunner('${r.id}')" title="Supprimer" class="p-1 text-gray-400 hover:text-red-600 transition">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
             `).join('');
         }
 
         function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
     </script>
 </body>
