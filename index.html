@@ -67,10 +67,21 @@
             </div>
         </header>
 
-        <!-- Contenu Principal : Liste de cartes mobile-friendly -->
-        <main class="max-w-3xl mx-auto px-4 py-6">
+        <!-- Contenu Principal -->
+        <main class="max-w-3xl mx-auto px-4 py-6 space-y-4">
+            
+            <!-- Sélecteur de Course -->
+            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 w-full">
+                    <span class="text-xs font-semibold uppercase text-gray-400 tracking-wider flex-shrink-0">Course :</span>
+                    <select id="race-selector" onchange="changeRace(this.value)" class="text-sm font-bold text-gray-900 bg-transparent focus:outline-none cursor-pointer w-full">
+                        <option value="Run4them 2026">Run4them 2026</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Liste des cartes -->
             <div id="runners-container" class="space-y-3">
-                <!-- Les cartes s'afficheront ici dynamiquement -->
                 <div class="bg-white p-6 rounded-xl border border-gray-200 text-center text-gray-400 text-sm shadow-sm">
                     Chargement des données...
                 </div>
@@ -142,6 +153,7 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentFilter = 'Tous';
+        let currentRace = 'Run4them 2026';
         let runnersData = [];
 
         const timePresets = {
@@ -169,6 +181,11 @@
             updateTimeChoices();
             fetchRunners();
         });
+
+        function changeRace(raceName) {
+            currentRace = raceName;
+            renderCards();
+        }
 
         function updateTimeChoices() {
             const distance = document.getElementById('runner-distance').value;
@@ -272,7 +289,8 @@
                 name: name,
                 distance: distance,
                 time: finalTime,
-                pace_type: paceDisplay
+                pace_type: paceDisplay,
+                race: currentRace
             };
 
             let error;
@@ -346,12 +364,16 @@
 
         function renderCards() {
             const container = document.getElementById('runners-container');
-            const filtered = currentFilter === 'Tous' 
-                ? runnersData 
-                : runnersData.filter(r => r.distance === currentFilter);
+            
+            // Filtre par course active et par distance sélectionnée
+            const filtered = runnersData.filter(r => {
+                const matchRace = (r.race || 'Run4them 2026') === currentRace;
+                const matchDist = currentFilter === 'Tous' || r.distance === currentFilter;
+                return matchRace && matchDist;
+            });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="bg-white p-6 rounded-xl border border-gray-200 text-center text-gray-400 text-sm shadow-sm">Aucun participant enregistré pour le moment.</div>`;
+                container.innerHTML = `<div class="bg-white p-6 rounded-xl border border-gray-200 text-center text-gray-400 text-sm shadow-sm">Aucun participant enregistré pour cette course.</div>`;
                 return;
             }
 
