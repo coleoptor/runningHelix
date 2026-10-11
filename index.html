@@ -283,33 +283,38 @@
         }
 
         function editRunner(id) {
-            const runner = runnersData.find(r => r.id === id);
-            if (!runner) return;
+    // On convertit les deux en String pour être sûr que la comparaison fonctionne
+    const runner = runnersData.find(r => String(r.id) === String(id));
+    if (!runner) {
+        console.error("Participant introuvable pour l'ID :", id);
+        return;
+    }
 
-            document.getElementById('runner-id').value = runner.id;
-            document.getElementById('runner-name').value = runner.name;
-            document.getElementById('runner-distance').value = runner.distance;
-            
-            updateTimeChoices();
+    document.getElementById('runner-id').value = runner.id;
+    document.getElementById('runner-name').value = runner.name;
+    document.getElementById('runner-distance').value = runner.distance;
+    
+    updateTimeChoices();
 
-            const select = document.getElementById('runner-time-choice');
-            const hasOption = Array.from(select.options).some(opt => opt.value === runner.time);
+    const select = document.getElementById('runner-time-choice');
+    const hasOption = Array.from(select.options).some(opt => opt.value === runner.time);
 
-            if (hasOption) {
-                select.value = runner.time;
-            } else {
-                select.value = 'custom';
-                document.getElementById('runner-custom-time').value = runner.time;
-            }
+    if (hasOption) {
+        select.value = runner.time;
+    } else {
+        select.value = 'custom';
+        document.getElementById('runner-custom-time').value = runner.time;
+    }
 
-            toggleCustomTime();
+    toggleCustomTime();
 
-            document.getElementById('form-title').innerText = "Modifier l'objectif";
-            document.getElementById('submit-btn').innerText = "Mettre à jour";
-            document.getElementById('cancel-btn').classList.remove('hidden');
+    document.getElementById('form-title').innerText = "Modifier l'objectif";
+    document.getElementById('submit-btn').innerText = "Mettre à jour";
+    document.getElementById('cancel-btn').classList.remove('hidden');
 
-            document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
-        }
+    document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+}
+
 
         async function deleteRunner(id) {
             if (!confirm("Êtes-vous sûr de vouloir supprimer cet objectif ?")) return;
