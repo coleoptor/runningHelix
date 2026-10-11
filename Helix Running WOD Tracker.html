@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helix Training - Objectifs Course</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        helix: {
+                            orange: '#d97706',
+                            dark: '#111827',
+                            card: '#f9fafb'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- SDK Client Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-white text-gray-800 min-h-screen flex flex-col justify-between">
+
+    <div>
+        <!-- En-tête avec le logo Helix Training -->
+        <header class="border-b border-gray-100 bg-white sticky top-0 z-10">
+            <div class="max-w-4xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-full overflow-hidden border border-amber-600 shadow-md flex-shrink-0 bg-amber-600 flex items-center justify-center">
+                        <img src="1000091068.jpg" alt="Helix Training Logo" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23d97706\'><circle cx=\'12\' cy=\'12\' r=\'12\'/></svg>';">
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight text-gray-900">HELIX TRAINING</h1>
+                        <p class="text-xs text-amber-600 font-semibold tracking-wider uppercase">Running WOD • Objectifs Groupe</p>
+                    </div>
+                </div>
+
+                <!-- Filtres par distance -->
+                <div class="flex items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-200">
+                    <button onclick="setFilter('Tous')" id="filter-Tous" class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-900 text-white transition">Tous</button>
+                    <button onclick="setFilter('5 km')" id="filter-5 km" class="px-3 py-1.5 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition">5 km</button>
+                    <button onclick="setFilter('10 km')" id="filter-10 km" class="px-3 py-1.5 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition">10 km</button>
+                    <button onclick="setFilter('20 km')" id="filter-20 km" class="px-3 py-1.5 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition">20 km</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenu Principal : Tableur -->
+        <main class="max-w-4xl mx-auto px-4 py-8">
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                <th class="py-3 px-4">Participant</th>
+                                <th class="py-3 px-4">Distance</th>
+                                <th class="py-3 px-4">Temps Objectif</th>
+                                <th class="py-3 px-4">Allure Moyenne</th>
+                            </tr>
+                        </thead>
+                        <tbody id="runners-table-body" class="divide-y divide-gray-100 text-sm">
+                            <tr>
+                                <td colspan="4" class="py-6 text-center text-gray-400">Chargement des données...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Formulaire d'ajout en bas de page -->
+    <section class="bg-gray-50 border-t border-gray-200 py-8 mt-12">
+        <div class="max-w-2xl mx-auto px-4">
+            <h2 class="text-lg font-bold text-gray-900 mb-4 text-center">Ajouter votre objectif</h2>
+            <form id="runner-form" onsubmit="handleAddRunner(event)" class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Prénom ou Pseudonyme</label>
+                        <input type="text" id="runner-name" required placeholder="Ex: Thomas" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Distance</label>
+                        <select id="runner-distance" onchange="updateTimeChoices()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm bg-white">
+                            <option value="5 km">5 km</option>
+                            <option value="10 km" selected>10 km</option>
+                            <option value="20 km">20 km</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Choix de l'objectif de temps</label>
+                    <select id="runner-time-choice" onchange="toggleCustomTime()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm bg-white mb-2">
+                        <!-- Options injectées dynamiquement -->
+                    </select>
+                </div>
+
+                <div id="custom-time-container" class="hidden">
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Saisir votre temps exact (HH:MM:SS ou MM:SS)</label>
+                    <input type="text" id="runner-custom-time" placeholder="Ex: 48:30" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                </div>
+
+                <button type="submit" class="w-full bg-gray-900 hover:bg-black text-white font-medium py-2.5 rounded-lg transition text-sm shadow-sm">
+                    Enregistrer mon objectif
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-4 text-center text-xs text-gray-400 border-t border-gray-100">
+        Helix Training Running WOD • Synchronisé via Supabase
+    </footer>
+
+    <!-- Script de logique -->
+    <script>
+        const SUPABASE_URL = 'https://ctjzbigpqewfmmpaioyp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0anpiaWdwcWV3Zm1tcGFpb3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NjI5NTQsImV4cCI6MjEwNzIzODk1NH0.wBfYU1Pq3GY1L2TCA6jaCHqVZjemSBHr7-X3ndcEwWU';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentFilter = 'Tous';
+        let runnersData = [];
+
+        // 4 choix de temps par distance (basés sur ~5min/km, ~6min/km, ~7min/km + custom)
+        const timePresets = {
+            '5 km': [
+                { label: '25:00 (5:00 /km)', value: '25:00' },
+                { label: '30:00 (6:00 /km)', value: '30:00' },
+                { label: '35:00 (7:00 /km)', value: '35:00' },
+                { label: 'Saisir un temps exact...', value: 'custom' }
+            ],
+            '10 km': [
+                { label: '50:00 (5:00 /km)', value: '50:00' },
+                { label: '1:00:00 (6:00 /km)', value: '1:00:00' },
+                { label: '1:10:00 (7:00 /km)', value: '1:10:00' },
+                { label: 'Saisir un temps exact...', value: 'custom' }
+            ],
+            '20 km': [
+                { label: '1:40:00 (5:00 /km)', value: '1:40:00' },
+                { label: '2:00:00 (6:00 /km)', value: '2:00:00' },
+                { label: '2:20:00 (7:00 /km)', value: '2:20:00' },
+                { label: 'Saisir un temps exact...', value: 'custom' }
+            ]
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateTimeChoices();
+            fetchRunners();
+        });
+
+        function updateTimeChoices() {
+            const distance = document.getElementById('runner-distance').value;
+            const select = document.getElementById('runner-time-choice');
+            const choices = timePresets[distance] || [];
+            
+            select.innerHTML = choices.map(c => `<option value="${c.value}">${c.label}</option>`).join('');
+            toggleCustomTime();
+        }
+
+        async function fetchRunners() {
+            const { data, error } = await supabaseClient
+                .from('runners')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Erreur lors du chargement :', error);
+                document.getElementById('runners-table-body').innerHTML = `<tr><td colspan="4" class="py-6 text-center text-red-500">Erreur de connexion à la base de données.</td></tr>`;
+                return;
+            }
+
+            runnersData = data || [];
+            renderTable();
+        }
+
+        function setFilter(distance) {
+            currentFilter = distance;
+            ['Tous', '5 km', '10 km', '20 km'].forEach(d => {
+                const btn = document.getElementById(`filter-${d}`);
+                if (d === distance) {
+                    btn.className = "px-3 py-1.5 text-xs font-medium rounded-md bg-gray-900 text-white transition";
+                } else {
+                    btn.className = "px-3 py-1.5 text-xs font-medium rounded-md text-gray-600 hover:text-gray-900 transition";
+                }
+            });
+            renderTable();
+        }
+
+        function toggleCustomTime() {
+            const val = document.getElementById('runner-time-choice').value;
+            const container = document.getElementById('custom-time-container');
+            if (val === 'custom') {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function parseDistanceKm(distStr) {
+            return parseFloat(distStr.replace(' km', ''));
+        }
+
+        function parseTimeToSeconds(timeStr) {
+            const parts = timeStr.split(':').map(Number);
+            if (parts.length === 3) {
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            } else if (parts.length === 2) {
+                return parts[0] * 60 + parts[1];
+            }
+            return 0;
+        }
+
+        async function handleAddRunner(e) {
+            e.preventDefault();
+            const name = document.getElementById('runner-name').value.trim();
+            const distance = document.getElementById('runner-distance').value;
+            const timeChoice = document.getElementById('runner-time-choice').value;
+            
+            let finalTime = '';
+
+            if (timeChoice === 'custom') {
+                finalTime = document.getElementById('runner-custom-time').value.trim();
+                if (!finalTime) {
+                    alert('Veuillez saisir un temps exact.');
+                    return;
+                }
+            } else {
+                // On extrait uniquement le temps (ex: "25:00" à partir de "25:00 (5:00 /km)")
+                finalTime = timeChoice.split(' ')[0];
+            }
+
+            // Calcul automatique de l'allure moyenne
+            const distKm = parseDistanceKm(distance);
+            const totalSeconds = parseTimeToSeconds(finalTime);
+            const paceSec = Math.round(totalSeconds / distKm);
+            const pMins = Math.floor(paceSec / 60);
+            const pSecs = paceSec % 60;
+            const paceDisplay = `${pMins}:${pSecs < 10 ? '0' : ''}${pSecs} /km`;
+
+            const { error } = await supabaseClient.from('runners').insert([
+                {
+                    name: name,
+                    distance: distance,
+                    time: finalTime,
+                    pace_type: paceDisplay
+                }
+            ]);
+
+            if (error) {
+                alert('Erreur lors de l’enregistrement : ' + error.message);
+                return;
+            }
+
+            document.getElementById('runner-form').reset();
+            updateTimeChoices();
+            fetchRunners();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('runners-table-body');
+            const filtered = currentFilter === 'Tous' 
+                ? runnersData 
+                : runnersData.filter(r => r.distance === currentFilter);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-gray-400">Aucun participant enregistré pour le moment.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(r => `
+                <tr class="hover:bg-gray-50/50 transition">
+                    <td class="py-3 px-4 font-semibold text-gray-900">${escapeHtml(r.name)}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-1 bg-amber-50 text-amber-800 rounded text-xs font-medium">${r.distance}</span></td>
+                    <td class="py-3 px-4 font-bold text-gray-900">${r.time}</td>
+                    <td class="py-3 px-4 text-gray-600">${r.pace_type || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
